@@ -1,0 +1,153 @@
+﻿@model dynamic
+@{
+    ViewData["Title"] = "Especialidades";
+
+    // Función auxiliar para asignar iconos según el nombre de la especialidad
+    string ObtenerIconoCss(string nombre)
+    {
+        string n = nombre.ToLower();
+        if (n.Contains("cardio")) return "bi-heart-pulse";
+        if (n.Contains("pediatr")) return "bi-emoji-smile";
+        if (n.Contains("clínica") || n.Contains("clinica")) return "bi-hospital";
+        if (n.Contains("trauma")) return "bi-bandaid";
+        if (n.Contains("derma")) return "bi-person-bounding-box";
+        if (n.Contains("gineco")) return "bi-gender-female";
+        if (n.Contains("neuro")) return "bi-lightning";
+        return "bi-activity";
+    }
+}
+
+<div class="crumbs">Agenda médica &rsaquo; <b>Especialidades</b></div>
+
+<div class="page-head">
+    <div>
+        <h1>Especialidades</h1>
+        <p class="subtitle">Seleccioná una especialidad para consultar sus médicos y la demanda de agenda.</p>
+    </div>
+    <span class="updated">
+        <i class="bi bi-arrow-repeat"></i> Actualizado hoy, @DateTime.Now.ToString("HH:mm")
+    </span>
+</div>
+
+<!-- KPIs globales obtenidos de ViewBag -->
+<section class="kpis">
+    <div class="card kpi">
+        <span class="kpi-icon"><i class="bi bi-grid"></i></span>
+        <div>
+            <small>Especialidades activas</small>
+            <strong>@ViewBag.TotalEspecialidades</strong>
+            <em>Todas operativas</em>
+        </div>
+    </div>
+    <div class="card kpi">
+        <span class="kpi-icon"><i class="bi bi-heart-pulse"></i></span>
+        <div>
+            <small>Médicos activos</small>
+            <strong>@ViewBag.TotalMedicos</strong>
+            <em>En el sistema</em>
+        </div>
+    </div>
+    <div class="card kpi">
+        <span class="kpi-icon"><i class="bi bi-calendar-check"></i></span>
+        <div>
+            <small>Turnos totales</small>
+            <strong>@ViewBag.TotalTurnos</strong>
+            <em>Acumulados</em>
+        </div>
+    </div>
+    <div class="card kpi">
+        <span class="kpi-icon"><i class="bi bi-calendar-plus"></i></span>
+        <div>
+            <small>Cupos disponibles</small>
+            <strong>@ViewBag.TotalCupos</strong>
+            <em>Pendientes de atención</em>
+        </div>
+    </div>
+</section>
+
+<!-- Tabla del Nivel 1 -->
+<section class="card table-card">
+    <div class="table-head">
+        <div>
+            <h2>Directorio de especialidades</h2>
+            <p>@ViewBag.TotalEspecialidades especialidades · @ViewBag.TotalMedicos profesionales</p>
+        </div>
+        <div class="tools">
+            <input class="input" type="search" id="inputBuscar" placeholder="Buscar especialidad" aria-label="Buscar especialidad">
+            <select class="select">
+                <option>Todas las sedes</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table id="tablaEspecialidades">
+            <thead>
+                <tr>
+                    <th>ESPECIALIDAD</th>
+                    <th>ID</th>
+                    <th>MÉDICOS ACTIVOS</th>
+                    <th>TURNOS</th>
+                    <th>DISPONIBILIDAD</th>
+                    <th class="t-right">DETALLE</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    string icono = ObtenerIconoCss(item.Nombre);
+                    <tr>
+                        <td>
+                            <div class="cell-main">
+                                <span class="ico"><i class="bi @icono"></i></span>
+                                <div>
+                                    <b>@item.Nombre</b>
+                                    <small>Atención médica especializada</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="pill">esp_@item.EspecialidadId.ToString("D3")</span>
+                        </td>
+                        <td><b>@item.MedicosActivos</b></td>
+                        <td><b>@item.TurnosTotales</b></td>
+                        <td class="ok">@item.MedicosConDisponibilidad con disponibilidad</td>
+                        <td class="t-right">
+                            <!-- navegación hacia el Nivel 2 (Médicos) -->
+                            <a class="link"
+                               asp-controller="Dashboard"
+                               asp-action="Medicos"
+                               asp-route-especialidadId="@item.EspecialidadId">
+                                Ver médicos <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-foot">
+        <span>Mostrando @ViewBag.TotalEspecialidades especialidades</span>
+        <span class="page-btn">1</span>
+    </div>
+</section>
+
+<p class="hint">
+    <i class="bi bi-info-circle"></i> Al abrir una fila, el sistema conserva especialidad_id para consultar los médicos asignados.
+</p>
+
+@section Scripts {
+    <script>
+        // Filtro por nombre de especialidad
+        document.getElementById('inputBuscar').addEventListener('keyup', function () {
+            let termino = this.value.toLowerCase();
+            let filas = document.querySelectorAll('#tablaEspecialidades tbody tr');
+
+            filas.forEach(fila => {
+                let nombre = fila.cells[0].textContent.toLowerCase();
+                fila.style.display = nombre.includes(termino) ? '' : 'none';
+            });
+        });
+    </script>
+}

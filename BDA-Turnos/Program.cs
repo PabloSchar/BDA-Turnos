@@ -9,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<TurnosDBContext>(options =>options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
 
 builder.Services.AddScoped<RepositorioUsuarios>();
+builder.Services.AddScoped<RepositorioEspecialidades>();
 
 //para las cookies
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

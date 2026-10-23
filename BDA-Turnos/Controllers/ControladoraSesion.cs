@@ -17,7 +17,7 @@ namespace BDA_Turnos.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-            if (User.Identity!.IsAuthenticated) return RedirectToAction("Index", "Home");
+            if (User.Identity!.IsAuthenticated) return RedirectToAction("Especialidades", "Dashboard");
             return View();
         }
 
@@ -53,7 +53,7 @@ namespace BDA_Turnos.Controllers
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Especialidades", "Dashboard");
             }
             catch (Exception ex)
             {
