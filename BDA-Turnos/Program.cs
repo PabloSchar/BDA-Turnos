@@ -10,6 +10,8 @@ builder.Services.AddDbContext<TurnosDBContext>(options =>options.UseNpgsql(build
 
 builder.Services.AddScoped<RepositorioUsuarios>();
 builder.Services.AddScoped<RepositorioEspecialidades>();
+builder.Services.AddScoped<RepositorioMedicos>();
+builder.Services.AddScoped<RepositorioTurnos>();
 
 //para las cookies
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -24,13 +26,26 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-var cultureInfo = new CultureInfo("en-US");
-app.UseRequestLocalization(new RequestLocalizationOptions
+var culturaEsAr = new CultureInfo("es-AR");
+
+//Formato de números con punto decimal
+culturaEsAr.NumberFormat.NumberDecimalSeparator = ".";
+culturaEsAr.NumberFormat.CurrencyDecimalSeparator = ".";
+
+// cultura por defecto
+CultureInfo.DefaultThreadCurrentCulture = culturaEsAr;
+CultureInfo.DefaultThreadCurrentUICulture = culturaEsAr;
+
+// Zona horaria Argentina/Buenos Aires
+try
 {
-    DefaultRequestCulture = new RequestCulture(cultureInfo),
-    SupportedCultures = new List<CultureInfo> { cultureInfo },
-    SupportedUICultures = new List<CultureInfo> { cultureInfo }
-});
+    TimeZoneInfo timeZoneBsAs = TimeZoneInfo.FindSystemTimeZoneById("Argentina Standard Time");
+    TimeZoneInfo.ClearCachedData();
+}
+catch
+{
+    TimeZoneInfo timeZoneBsAs = TimeZoneInfo.FindSystemTimeZoneById("America/Argentina/Buenos_Aires");
+}
 
 if (!app.Environment.IsDevelopment())
 {

@@ -473,12 +473,6 @@ td small {
     font-size: 11px;
 }
 
-.hint {
-    font-size: 10.5px;
-    color: var(--muted);
-    margin-top: 12px;
-}
-
 /* BADGES DE ESTADO */
 .badge-s {
     display: inline-flex;

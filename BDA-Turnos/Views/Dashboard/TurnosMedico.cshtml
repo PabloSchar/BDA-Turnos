@@ -1,0 +1,171 @@
+﻿@model List<BDA_Turnos.Models.TurnoDTO>
+@{
+    ViewData["Title"] = $"Turnos de {ViewBag.NombreMedico}";
+}
+
+<!-- Navegación jerárquica de 3 niveles -->
+<div class="crumbs">
+    Agenda médica &rsaquo;
+    <a asp-controller="Dashboard" asp-action="Especialidades">Especialidades</a> &rsaquo;
+    <a asp-controller="Dashboard" asp-action="Medicos" asp-route-especialidadId="@ViewBag.EspecialidadId">@ViewBag.NombreEspecialidad</a> &rsaquo;
+    <b>@ViewBag.NombreMedico</b>
+</div>
+
+<div class="page-head">
+    <div>
+        <h1>Turnos del médico</h1>
+        <p class="subtitle">Agenda individual con datos de paciente, horario exacto y estado de atención.</p>
+    </div>
+    <button class="date-btn" type="button">
+        @DateTime.Now.ToString("dd MMM yyyy") <i class="bi bi-calendar3"></i>
+    </button>
+</div>
+
+<!-- Ficha del Médico -->
+<section class="card doctor">
+    <div class="who">
+        <span class="ico"><i class="bi bi-person"></i></span>
+        <div>
+            <h2>@ViewBag.NombreMedico</h2>
+            <p>@ViewBag.NombreEspecialidad · MP @ViewBag.Matricula</p>
+        </div>
+    </div>
+    <div class="field">
+        <small>MÉDICO SELECCIONADO</small>
+        <span class="pill">med_@ViewBag.MedicoId.ToString("D4")</span>
+    </div>
+    <div class="field">
+        <small>CONSULTORIO</small>
+        Sede Belgrano · Piso 3
+    </div>
+    <div class="field">
+        <small>OCUPACIÓN</small>
+        <span class="badge-s @ViewBag.ClaseBadgeOcupacion">@ViewBag.TextoOcupacion · @ViewBag.PorcentajeOcupacion%</span>
+    </div>
+</section>
+
+<!-- KPIs de Estados de Turnos -->
+<section class="kpis five">
+    <div class="card kpi">
+        <span class="kpi-icon"><i class="bi bi-calendar3"></i></span>
+        <div>
+            <small>Turnos del período</small>
+            <strong>@ViewBag.TotalTurnos</strong>
+            <em>Registrados</em>
+        </div>
+    </div>
+    <div class="card kpi">
+        <span class="kpi-icon"><i class="bi bi-clock"></i></span>
+        <div>
+            <small>Pendientes</small>
+            <strong>@ViewBag.Pendientes</strong>
+            <em>Por atender</em>
+        </div>
+    </div>
+    <div class="card kpi">
+        <span class="kpi-icon"><i class="bi bi-check-circle"></i></span>
+        <div>
+            <small>Atendidos</small>
+            <strong>@ViewBag.Atendidos</strong>
+            <em>Completados</em>
+        </div>
+    </div>
+    <div class="card kpi">
+        <span class="kpi-icon"><i class="bi bi-shield-check"></i></span>
+        <div>
+            <small>Confirmados</small>
+            <strong>@ViewBag.Confirmados</strong>
+            <em>Con asistencia</em>
+        </div>
+    </div>
+    <div class="card kpi">
+        <span class="kpi-icon"><i class="bi bi-x-circle"></i></span>
+        <div>
+            <small>Cancelados</small>
+            <strong>@ViewBag.Cancelados</strong>
+            <em>Anulados</em>
+        </div>
+    </div>
+</section>
+
+<!-- Grilla de Turnos -->
+<section class="card table-card">
+    <div class="table-head">
+        <div>
+            <h2>Grilla de turnos</h2>
+            <p>@ViewBag.TotalTurnos turnos · ordenados por fecha y hora</p>
+        </div>
+        <div class="tools">
+            <input class="input" type="search" id="buscarPaciente" placeholder="Buscar paciente o DNI" aria-label="Buscar paciente o DNI">
+            <select class="select" id="selectEstadoTurno">
+                <option value="">Todos los estados</option>
+                <option value="Pendiente">Pendiente</option>
+                <option value="Atendido">Atendido</option>
+                <option value="Confirmado">Confirmado</option>
+                <option value="Cancelado">Cancelado</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table id="tablaTurnos">
+            <thead>
+                <tr>
+                    <th>FECHA</th>
+                    <th>HORA</th>
+                    <th>PACIENTE</th>
+                    <th>DNI</th>
+                    <th>ESTADO</th>
+                    <th class="t-right">ACCIONES</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var turno in Model)
+                {
+                    <tr>
+                        <td>
+                            <b>@turno.FechaFormateada</b>
+                            <small>@turno.DiaNombre</small>
+                        </td>
+                        <td class="time">@turno.HoraFormateada</td>
+                        <td>
+                            <b>@turno.PacienteNombre</b>
+                            <small>Historia clínica disponible</small>
+                        </td>
+                        <td>@turno.DniFormateado</td>
+                        <td>
+                            <span class="badge-s @turno.ClaseBadge">@turno.EstadoNombre</span>
+                        </td>
+                        <td class="t-right dots">•••</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        const inputBuscar = document.getElementById('buscarPaciente');
+        const selectEstado = document.getElementById('selectEstadoTurno');
+        const filas = document.querySelectorAll('#tablaTurnos tbody tr');
+
+        function filtrarTurnos() {
+            const texto = inputBuscar.value.toLowerCase();
+            const estado = selectEstado.value.toLowerCase();
+
+            filas.forEach(fila => {
+                const pacienteDni = fila.cells[2].textContent.toLowerCase() + " " + fila.cells[3].textContent.toLowerCase();
+                const estadoTexto = fila.cells[4].textContent.toLowerCase();
+
+                const coincideTexto = pacienteDni.includes(texto);
+                const coincideEstado = estado === "" || estadoTexto.includes(estado);
+
+                fila.style.display = (coincideTexto && coincideEstado) ? '' : 'none';
+            });
+        }
+
+        inputBuscar.addEventListener('keyup', filtrarTurnos);
+        selectEstado.addEventListener('change', filtrarTurnos);
+    </script>
+}

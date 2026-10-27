@@ -1,4 +1,4 @@
-﻿@model dynamic
+﻿@model List<BDA_Turnos.Models.EspecialidadMetricasDTO>
 @{
     ViewData["Title"] = "Especialidades";
 
@@ -132,10 +132,6 @@
         <span class="page-btn">1</span>
     </div>
 </section>
-
-<p class="hint">
-    <i class="bi bi-info-circle"></i> Al abrir una fila, el sistema conserva especialidad_id para consultar los médicos asignados.
-</p>
 
 @section Scripts {
     <script>

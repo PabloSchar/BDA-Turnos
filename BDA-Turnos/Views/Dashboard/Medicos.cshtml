@@ -1,0 +1,192 @@
+﻿@model List<BDA_Turnos.Models.MedicoEspecialidadDTO>
+@{
+    ViewData["Title"] = $"Médicos de {ViewBag.NombreEspecialidad}";
+}
+
+<!-- Drill-down: Nivel 1 -> Nivel 2 -->
+<div class="crumbs">
+    Agenda médica &rsaquo;
+    <a asp-controller="Dashboard" asp-action="Especialidades">Especialidades</a> &rsaquo;
+    <b>@ViewBag.NombreEspecialidad</b>
+</div>
+
+<div class="page-head">
+    <div>
+        <h1>Médicos de @ViewBag.NombreEspecialidad <span class="tag">especialidad_id · esp_@ViewBag.EspecialidadId.ToString("D3")</span></h1>
+        <p class="subtitle">Ocupación calculada sobre los cupos de agenda disponibles.</p>
+    </div>
+    <button class="date-btn" type="button">
+        @DateTime.Now.ToString("dd MMM yyyy") <i class="bi bi-calendar3"></i>
+    </button>
+</div>
+
+<!-- KPIs resumen de la especialidad -->
+<section class="kpis">
+    <div class="card kpi">
+        <span class="kpi-icon"><i class="bi bi-people"></i></span>
+        <div>
+            <small>Médicos asignados</small>
+            <strong>@ViewBag.TotalMedicosAsignados</strong>
+            <em>Todos activos</em>
+        </div>
+    </div>
+    <div class="card kpi">
+        <span class="kpi-icon"><i class="bi bi-calendar-check"></i></span>
+        <div>
+            <small>Turnos ocupados</small>
+            <strong>@ViewBag.TotalTurnosOcupados</strong>
+            <em>de @ViewBag.TotalCupos cupos</em>
+        </div>
+    </div>
+    <div class="card kpi">
+        <span class="kpi-icon amber"><i class="bi bi-speedometer2"></i></span>
+        <div>
+            <small>Ocupación global</small>
+            <strong>@ViewBag.OcupacionGlobal%</strong>
+            <em class="warn">Promedio general</em>
+        </div>
+    </div>
+    <div class="card kpi">
+        <span class="kpi-icon"><i class="bi bi-calendar-plus"></i></span>
+        <div>
+            <small>Cupos disponibles</small>
+            <strong>@ViewBag.CuposDisponibles</strong>
+            <em>Restante disponible</em>
+        </div>
+    </div>
+</section>
+
+<!--SEMAFORIZACIÓN-->
+<section class="summary-row">
+    <div class="card summary">
+        <h3>Resumen por estado</h3>
+        <p>Distribución de la demanda de agenda</p>
+        <div class="legend">
+            <span><span class="dot" style="background:var(--green)"></span> @ViewBag.CountVerde Normal</span>
+            <span><span class="dot" style="background:var(--amber)"></span> @ViewBag.CountAmarillo Advertencia</span>
+            <span><span class="dot" style="background:var(--red)"></span> @ViewBag.CountRojo Crítica</span>
+        </div>
+    </div>
+    <div class="card semaforo">
+        <h3>Semáforo de demanda (Referencias)</h3>
+        <div class="sem-item green">
+            <b>Verde · Normal</b>
+            <small>Alta disponibilidad para asignar turnos</small>
+            <span>&lt; 4 turnos</span>
+        </div>
+        <div class="sem-item amber">
+            <b>Amarillo · Advertencia</b>
+            <small>Agenda moderada; revisar cupos próximos</small>
+            <span>4–7 turnos</span>
+        </div>
+        <div class="sem-item red">
+            <b>Rojo · Crítica</b>
+            <small>Agenda con sobrecarga; requiere atención</small>
+            <span>&ge; 8 turnos</span>
+        </div>
+    </div>
+</section>
+
+<!-- Médicos -->
+<section class="card table-card">
+    <div class="table-head">
+        <div>
+            <h2>Profesionales asignados</h2>
+            <p>@ViewBag.TotalMedicosAsignados médicos · @ViewBag.TotalTurnosOcupados turnos ocupados</p>
+        </div>
+        <div class="tools">
+            <input class="input" type="search" id="inputBuscarMedico" placeholder="Buscar médico o matrícula" aria-label="Buscar médico o matrícula">
+            <select class="select" id="selectEstado">
+                <option value="">Todos los estados</option>
+                <option value="Normal">Normal</option>
+                <option value="Advertencia">Advertencia</option>
+                <option value="Crítica">Crítica</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table id="tablaMedicos">
+            <thead>
+                <tr>
+                    <th>MÉDICO</th>
+                    <th>MEDICO_ID</th>
+                    <th>MATRÍCULA</th>
+                    <th>TURNOS</th>
+                    <th>CUPOS</th>
+                    <th>OCUPACIÓN</th>
+                    <th>ESTADO</th>
+                    <th class="t-right">AGENDA</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var medico in Model)
+                {
+                    <tr>
+                        <td>
+                            <div class="cell-main">
+                                <span class="ico"><i class="bi bi-person"></i></span>
+                                <div>
+                                    <b>@medico.Nombre</b>
+                                    <small>MP @medico.Matricula</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="pill">med_@medico.MedicoId.ToString("D4")</span></td>
+                        <td><b>@medico.Matricula</b></td>
+                        <td><b>@medico.TurnosOcupados</b></td>
+                        <td>@medico.CuposTotales</td>
+                        <td>
+                            <div class="occ">
+                                @medico.PorcentajeOcupacion%
+                                <div class="bar">
+                                    <i class="@medico.ClaseBarra" style="width:@medico.PorcentajeOcupacion%"></i>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge-s @medico.ClaseBadge">@medico.TextoEstado</span>
+                        </td>
+                        <td class="t-right">
+                            <!-- navegación hacia el Nivel 3 (Detalle de Turnos del Médico) -->
+                            <a class="link"
+                               asp-controller="Dashboard"
+                               asp-action="TurnosMedico"
+                               asp-route-medicoId="@medico.MedicoId"
+                               asp-route-especialidadId="@ViewBag.EspecialidadId">
+                                Ver turnos <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        // Filtro por texto y estado
+        const inputBuscar = document.getElementById('inputBuscarMedico');
+        const selectEstado = document.getElementById('selectEstado');
+        const filas = document.querySelectorAll('#tablaMedicos tbody tr');
+
+        function filtrarTabla() {
+            const texto = inputBuscar.value.toLowerCase();
+            const estado = selectEstado.value.toLowerCase();
+
+            filas.forEach(fila => {
+                const nombreMatricula = fila.cells[0].textContent.toLowerCase();
+                const estadoTexto = fila.cells[6].textContent.toLowerCase();
+
+                const coincideTexto = nombreMatricula.includes(texto);
+                const coincideEstado = estado === "" || estadoTexto.includes(estado);
+
+                fila.style.display = (coincideTexto && coincideEstado) ? '' : 'none';
+            });
+        }
+
+        inputBuscar.addEventListener('keyup', filtrarTabla);
+        selectEstado.addEventListener('change', filtrarTabla);
+    </script>
+}
